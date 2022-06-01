@@ -142,26 +142,6 @@ class dbg_hooks_t(ida_dbg.DBG_Hooks):
         pc = vu.cfunc.get_pseudocode()
         pc[lineno].bgcolor = item_color #set pc color
         vu.refresh_ctext()
-        
-        ea_list = self._get_item_ea_list(vu, pc[lineno].line)
-        #print(','.join('{:#x}'.format(x) for x in ea_list))
-        if not ea_list: return
-
-        arg_list = []
-        for ea in ea_list:
-            set_color(ea, CIC_ITEM, item_color) 
-            arg_addr_list = get_arg_addrs(ea)
-            if arg_addr_list:
-                for arg_addr in arg_addr_list:
-                    arg_value = self._get_operand_value(arg_addr, 0)
-                    if arg_value != None:
-                        arg_value = arg_list.append(arg_value)
-            #print(','.join('{:#x}'.format(x) for x in arg_list))
-            if arg_list:
-                cmt = 'arg: ' + ', '.join('{:#x}'.format(x) for x in arg_list)
-                self._set_pseudocode_cmt(vu, ea, cmt)   # set comment
-                arg_list.clear()
-                break
 
 class mark_t():
     hr_hexrays_hooks = None
