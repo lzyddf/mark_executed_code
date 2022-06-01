@@ -1,5 +1,5 @@
 # mark_executed_code
-A ida plugin
+A plugin for ida 7.5 ~ 7.x
 
 # Description
 This plugin for ida can mark the code which executed while debugging, including pseudo code and assembly code.
