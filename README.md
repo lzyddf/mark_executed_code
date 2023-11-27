@@ -3,7 +3,7 @@ A plugin for ida 7.5 ~ 7.x and 8.x.
 
 # Description
 
-This plugin for ida can mark the code which executed while debugging, including pseudo-code and assembly code.
+This plug-in can mark executed assembly code and pseudocode when debugging code.
 
 # Usage
 
