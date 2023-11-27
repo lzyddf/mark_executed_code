@@ -7,7 +7,7 @@ This plugin for ida can mark the code which executed while debugging, including 
 
 # Usage
 
-Move mark_executed_code.py to plugins folder, which will be enabled automatically when IDA starts.
+Move mark_executed_code.py into the plugins folder, and the plug-in will be automatically enabled when IDA starts.
 
 # Shortcuts
 Ctrl+Shift+M
