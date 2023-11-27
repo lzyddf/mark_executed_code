@@ -1,21 +1,11 @@
 # -*- coding=utf-8 -*-
 
-import time
 import ida_dbg
-from ida_dbg import *
 from idaapi import *
-import ida_ida
-from ida_ida import *
-import ida_pro
-import ida_ua
-from ida_allins import NN_callni, NN_call, NN_callfi
-from ida_lines import generate_disasm_line, GENDSM_FORCE_CODE, GENDSM_REMOVE_TAGS
 import ida_hexrays as hr
 import ida_kernwin as kw
 import ida_funcs
-import idautils
-from idautils import *
-from idc import *
+import idc
 
 PLUGIN_NAME = 'mark executed code'
 
@@ -48,54 +38,7 @@ class hexrays_hooks_t(hr.Hexrays_Hooks):
 class dbg_hooks_t(ida_dbg.DBG_Hooks):
     def __init__(self):
         ida_dbg.DBG_Hooks.__init__(self)
-        
-    def _set_pseudocode_cmt(self, vu, ea, cmt):
-        commentSet = False
-        eamap = vu.cfunc.get_eamap()
-        tl = treeloc_t()
-        tl.ea = eamap[ea][0].ea
-        tl.itp = ITP_SEMI
-        vu.cfunc.set_user_cmt(tl, cmt)
-        vu.cfunc.save_user_cmts()
 
-        for itp in [ITP_SEMI, ITP_BRACE2]:
-            tl.itp = itp
-            vu.cfunc.set_user_cmt(tl, cmt)
-            if vu.cfunc.get_user_cmt(tl, RETRIEVE_ONCE) != None:
-                commentSet = True
-                break
-        vu.cfunc.del_orphan_cmts()
-        vu.cfunc.save_user_cmts()
-        if not commentSet:
-            print ("pseudo comment error at %08x" % ea)
-        else:
-            vu.refresh_ctext()
-        
-    def _get_operand_value(self, ea, n):
-        insn = ida_ua.insn_t()
-        inslen = ida_ua.decode_insn(insn, ea)
-        if inslen == 0:
-            return None
-        op = insn.ops[n]
-        if not op:
-            return None
-
-        if op.type in [ ida_ua.o_mem, ida_ua.o_far, ida_ua.o_near, ida_ua.o_displ ]:
-            value = op.addr
-        elif op.type == ida_ua.o_reg:
-            value = get_reg_value(print_operand(ea, 0))
-        elif op.type == ida_ua.o_imm:
-            value = op.value
-        elif op.type == ida_ua.o_phrase:
-            value = op.phrase
-        else:
-            value = None
-            
-        return value;
-        
-    #-------------------------------------------
-    #This code is referenced from 'https://github.com/patois'
-    #-------------------------------------------
     def _get_item_ea_list(self, vu, line):
         indexes = []
         ea_list = []
@@ -118,13 +61,12 @@ class dbg_hooks_t(ida_dbg.DBG_Hooks):
                 ea_list.append(item.ea)
                 
         return sorted(ea_list)
-    #-------------------------------------------
-
+    
     def dbg_suspend_process(self):
-        set_color(get_event_ea(), CIC_ITEM, item_color)
+        idc.set_color(idc.get_event_ea(), idc.CIC_ITEM, item_color)
 
         vu = hr.get_widget_vdui(kw.get_current_widget())
-        if not vu: return
+        if vu == None: return
 
         func_entry_ea = vu.cfunc.entry_ea
         if func_entry_ea not in func_pseudocode_info_list:
@@ -142,6 +84,14 @@ class dbg_hooks_t(ida_dbg.DBG_Hooks):
         pc = vu.cfunc.get_pseudocode()
         pc[lineno].bgcolor = item_color #set pc color
         vu.refresh_ctext()
+        
+        ea_list = self._get_item_ea_list(vu, pc[lineno].line)
+        if not ea_list: return
+
+        ea = ea_list[0]
+        while ea <= ea_list[-1]:
+            idc.set_color(ea, idc.CIC_ITEM, item_color)
+            ea = idc.next_head(ea)
 
 class mark_t():
     hr_hexrays_hooks = None
@@ -167,10 +117,10 @@ class clear_color_t(kw.action_handler_t):
     
     def activate(self, ctx):
         for func_addr in func_pseudocode_info_list.keys():
-            set_color(func_addr, CIC_FUNC, default_color)
+            idc.set_color(func_addr, idc.CIC_FUNC, default_color)
             func = get_func(func_addr)
             for addr in range(func.start_ea, func.end_ea):
-                set_color(addr, CIC_ITEM, default_color)
+                idc.set_color(addr, idc.CIC_ITEM, default_color)
 
         func_pseudocode_info_list.clear()
         open_pseudocode(ctx.cur_ea, OPF_NO_WAIT)
